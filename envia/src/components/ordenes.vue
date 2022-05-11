@@ -1,5 +1,6 @@
 <template>
   <v-container>
+    
     <v-row no-gutters>
       <v-col md="auto">
         <v-card class="pa-2" elevation="0"> Numero de orden: </v-card>
@@ -31,72 +32,121 @@
     >
       <template v-slot:footer>
         <v-divider class="mb-2"></v-divider>
-        <v-tooltip bottom>
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              class="mx-2 mb-2"
-              fab
-              dark
-              color="indigo"
-              @click="dialog = !dialog"
-              v-bind="attrs"
-              v-on="on"
-            >
-              <v-icon dark> mdi-plus </v-icon>
-            </v-btn>
-          </template>
-          <span>Agregar producto</span>
-        </v-tooltip>
+
+        <v-row>
+          <v-col cols="6">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  class="mx-2 mb-2"
+                  :disabled="!selected"
+                  fab
+                  color="primary"
+                  @click="dialog = !dialog"
+                  v-bind="attrs"
+                  v-on="on"
+                  small
+                >
+                  <v-icon dark> mdi-plus </v-icon>
+                </v-btn>
+              </template>
+              <span>Agregar producto</span>
+            </v-tooltip>
+          </v-col>
+
+          <v-spacer></v-spacer>
+          <v-col cols="1">
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  class="mb-2 mr-3"
+                  :disabled="!selected"
+                  fab
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  small
+                  @click="alert"
+                >
+                  <v-icon dark> mdi-credit-card-outline </v-icon>
+                </v-btn>
+              </template>
+              <span>Pagar</span>
+            </v-tooltip>
+          </v-col>
+        </v-row>
+        <v-alert
+  border="left"
+  color="green"
+  shaped
+  type="success"
+  :value="alerta"
+>Pagado con exito!</v-alert>
       </template>
     </v-data-table>
-    <v-dialog v-model="dialog" width="35%">
+    
+    <v-dialog v-model="dialog" persistent width="35%">
       <v-card>
         <v-card-title class="text-h5 grey lighten-2">
           Agregar producto
         </v-card-title>
         <v-card-text class="mt-5">
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                outlined
-                dense
-                v-model="product.sku"
-                label="Sku"
-              ></v-text-field
-            ></v-col>
-            <v-col cols="6"
-              ><v-text-field
-                outlined
-                dense
-                v-model="product.name"
-                label="Nombre"
-              ></v-text-field
-            ></v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="6">
-              <v-text-field
-                outlined
-                dense
-                label="Cantidad"
-                v-model="product.quantity"
-              ></v-text-field
-            ></v-col>
-            <v-col cols="6"
-              ><v-text-field
-                outlined
-                dense
-                label="Precio"
-                v-model="product.price"
-              ></v-text-field
-            ></v-col>
-          </v-row>
+          <v-form ref="form" v-model="valid" lazy-validation>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  outlined
+                  dense
+                  v-model="product.sku"
+                  label="Sku"
+                  :rules="nameRules"
+                  required
+                ></v-text-field
+              ></v-col>
+              <v-col cols="6"
+                ><v-text-field
+                  outlined
+                  dense
+                  v-model="product.name"
+                  label="Nombre"
+                  :rules="nameRules"
+                  required
+                ></v-text-field
+              ></v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6">
+                <v-text-field
+                  outlined
+                  dense
+                  label="Cantidad"
+                  v-model="product.quantity"
+                  :rules="nameRules"
+                  @keypress="filter(event)"
+                  required
+                ></v-text-field
+              ></v-col>
+              <v-col cols="6"
+                ><v-text-field
+                  outlined
+                  dense
+                  label="Precio"
+                  v-model="product.price"
+                  :rules="nameRules"
+                  @keypress="filter(event)"
+                  required
+                ></v-text-field
+              ></v-col>
+            </v-row>
+          </v-form>
         </v-card-text>
         <v-card-actions>
+          <v-btn color="secondary" text @click="close"> Cerrar </v-btn>
           <v-spacer></v-spacer>
-          <v-btn color="primary" text @click="addItem"> Guardar </v-btn>
+          <v-btn color="primary" text @click="validate"> Guardar </v-btn>
         </v-card-actions>
       </v-card>
+      
     </v-dialog>
 
     <!-- <v-btn>logCOnsole</v-btn> -->
@@ -110,6 +160,20 @@ export default {
   name: "ordenesMain",
   data() {
     return {
+      alerta: false,
+      validacion: false,
+      nameRules: [(v) => (v && v.length > 0) || "Porfavor llene el campo"],
+      filter: function (evt) {
+        evt = evt ? evt : window.event;
+        let expect = evt.target.value.toString() + evt.key.toString();
+
+        if (!/^[-+]?[0-9]*\.?[0-9]*$/.test(expect)) {
+          evt.preventDefault();
+        } else {
+          return true;
+        }
+      },
+      disable: true,
       product: {
         sku: null,
         name: null,
@@ -172,19 +236,41 @@ export default {
     this.getProducts();
   },
   methods: {
+    
+    alert() {
+      if (this.alerta === false)
+      this.alerta = true
+       setTimeout(() => {  this.alerta = false }, 3000);
+    },
+    close() {
+      this.dialog = !this.dialog;
+      this.resetValidation();
+    },
+    validate() {
+      if (this.$refs.form.validate()) {
+        this.addItem();
+        this.resetValidation();
+      }
+    },
+    reset() {
+      this.$refs.form.reset();
+    },
+    resetValidation() {
+      this.$refs.form.resetValidation();
+    },
     cleanModel() {
       this.product = {
         sku: null,
         name: null,
         quantity: null,
         price: null,
-      }
+      };
     },
     addItem() {
       this.dialog = !this.dialog;
-      for(let i = 0; i < this.items.length; i++) {
-        if(this.selected[0].id === this.items[i].id) {
-          this.items[i].items.push(JSON.parse(JSON.stringify(this.product)))
+      for (let i = 0; i < this.items.length; i++) {
+        if (this.selected[0].id === this.items[i].id) {
+          this.items[i].items.push(JSON.parse(JSON.stringify(this.product)));
         }
       }
       this.updateSelected();
