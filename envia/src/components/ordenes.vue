@@ -56,12 +56,40 @@
         </v-card-title>
         <v-card-text class="mt-5">
           <v-row>
-            <v-col cols="6"> <v-text-field outlined dense label="Sku"></v-text-field></v-col>
-            <v-col cols="6"><v-text-field outlined dense label="Nombre"></v-text-field></v-col>
+            <v-col cols="6">
+              <v-text-field
+                outlined
+                dense
+                v-model="product.sku"
+                label="Sku"
+              ></v-text-field
+            ></v-col>
+            <v-col cols="6"
+              ><v-text-field
+                outlined
+                dense
+                v-model="product.name"
+                label="Nombre"
+              ></v-text-field
+            ></v-col>
           </v-row>
-         <v-row>
-            <v-col cols="6"> <v-text-field outlined dense label="Cantidad"></v-text-field></v-col>
-            <v-col cols="6"><v-text-field outlined dense label="Precio"></v-text-field></v-col>
+          <v-row>
+            <v-col cols="6">
+              <v-text-field
+                outlined
+                dense
+                label="Cantidad"
+                v-model="product.quantity"
+              ></v-text-field
+            ></v-col>
+            <v-col cols="6"
+              ><v-text-field
+                outlined
+                dense
+                label="Precio"
+                v-model="product.price"
+              ></v-text-field
+            ></v-col>
           </v-row>
         </v-card-text>
         <v-card-actions>
@@ -82,6 +110,12 @@ export default {
   name: "ordenesMain",
   data() {
     return {
+      product: {
+        sku: null,
+        name: null,
+        quantity: null,
+        price: null,
+      },
       dialog: false,
       singleSelect: true,
       selected: null,
@@ -131,20 +165,38 @@ export default {
   },
   watch: {
     selected() {
-      this.itemsDetail = [];
-      console.log(this.selected);
-      this.selected[0].items.forEach((element) => {
-        this.itemsDetail.push(element);
-      });
-      console.log(this.itemsDetail);
+      this.updateSelected();
     },
   },
   mounted() {
     this.getProducts();
   },
   methods: {
+    cleanModel() {
+      this.product = {
+        sku: null,
+        name: null,
+        quantity: null,
+        price: null,
+      }
+    },
     addItem() {
       this.dialog = !this.dialog;
+      for(let i = 0; i < this.items.length; i++) {
+        if(this.selected[0].id === this.items[i].id) {
+          this.items[i].items.push(JSON.parse(JSON.stringify(this.product)))
+        }
+      }
+      this.updateSelected();
+      this.cleanModel();
+    },
+    updateSelected() {
+      this.itemsDetail = [];
+      console.log(this.selected);
+      this.selected[0].items.forEach((element) => {
+        this.itemsDetail.push(element);
+      });
+      console.log(this.itemsDetail);
     },
     getProducts() {
       const header1 =
