@@ -245,6 +245,7 @@ export default {
     close() {
       this.dialog = !this.dialog;
       this.resetValidation();
+      this.cleanModel();
     },
     validate() {
       if (this.$refs.form.validate()) {
